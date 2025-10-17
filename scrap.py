@@ -82,19 +82,19 @@ class ChatbotWithMongoMemory:
         self._load_memory()
 
     def _load_memory(self):
-        if memory_col:
+        if memory_col is not None:
             doc = memory_col.find_one({"user_id": self.user_id})
             self.memory = doc.get("data", {}) if doc else {}
 
     def _save_history(self, role, text):
-        if history_col:
+        if history_col is not None:
             history_col.insert_one({"user_id": self.user_id, "role": role, "text": text})
 
     def _get_history_messages(self, is_gemini=False):
         messages = []
         if is_gemini:
             # Gemini uses a different format
-            if history_col:
+            if history_col is not None:
                 msgs = list(history_col.find({"user_id": self.user_id}))
                 for m in msgs:
                     # Gemini expects "user" and "model" roles
@@ -103,7 +103,7 @@ class ChatbotWithMongoMemory:
         else:
             # Standard OpenAI format
             messages.append({"role": "system", "content": self.system_prompt})
-            if history_col:
+            if history_col is not None:
                 msgs = list(history_col.find({"user_id": self.user_id}))
                 for m in msgs:
                     messages.append({"role": m["role"], "content": m["text"]})
