@@ -1,10 +1,11 @@
 import os, random
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 from pymongo import MongoClient
+from pymongo.errors import ConfigurationError
 import google.generativeai as genai
 import openai
 
-app = Flask(__name__, static_folder='.')
+app = Flask(__name__)
 
 # ======[ Environment Variables ]====== #
 GEMINI_API_KEY = [
@@ -16,20 +17,32 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 MONGO_URI = os.getenv("MONGO_URI")
 
 # ======[ Global variables ]====== #
-bots = {}
-last_key = None  
+last_key = None
+mongo_client = None
+db = None
+memory_col = None
+history_col = None
 
-# ======[ Persistent MongoDB client ]====== #
-mongo_client = MongoClient(MONGO_URI) if MONGO_URI else None
-db = mongo_client["chatbot_db"] if mongo_client else None
-memory_col = db["memory"] if db else None
-history_col = db["history"] if db else None
+# ======[ MongoDB Initialization ]====== #
+if MONGO_URI:
+    try:
+        mongo_client = MongoClient(MONGO_URI)
+        db = mongo_client["chatbot_db"]
+        memory_col = db["memory"]
+        history_col = db["history"]
+    except ConfigurationError as e:
+        print(f"MongoDB Configuration Error: {e}")
+        # Allow the app to run without a database connection,
+        # but features relying on it will be disabled.
+        pass
 
 # ======[ Function to rotate Gemini API keys ]====== #
 def get_random_key():
     global last_key
     available_keys = [k for k in GEMINI_API_KEY if k and k != last_key]
-    key = random.choice(available_keys) if available_keys else None
+    if not available_keys:
+        return None
+    key = random.choice(available_keys)
     last_key = key
     return key
 
@@ -39,19 +52,28 @@ class ChatbotWithMongoMemory:
         self.user_id = user_id
         self.model_type = model.lower()
         self.system_prompt = (
-            f"You are a helpful AI assistant made by sanchit. "
-            f"Do not mention Google or any company names in your responses."
+            "You are a helpful AI assistant made by sanchit. "
+            "Do not mention Google or any company names in your responses."
         )
         if system_prompt:
             self.system_prompt += " " + system_prompt
 
         if self.model_type == "gemini":
-            key = get_random_key()
-            if not key:
-                raise ValueError("No Gemini API key available")
-            genai.configure(api_key=key)
-            self.model = genai.GenerativeModel("gemini-2.5-flash", system_instruction=self.system_prompt)
+            gemini_key = get_random_key()
+            if not gemini_key:
+                raise ValueError("Missing GEMINI_API_KEY environment variable.")
+            genai.configure(api_key=gemini_key)
+            self.model = genai.GenerativeModel(
+                "gemini-1.5-flash",
+                system_instruction=self.system_prompt
+            )
+            # Start a chat session to load history
+            self.chat_session = self.model.start_chat(
+                history=self._get_history_messages(is_gemini=True)
+            )
         elif self.model_type == "gpt":
+            if not OPENAI_API_KEY:
+                raise ValueError("Missing OPENAI_API_KEY environment variable.")
             self.client = openai.OpenAI(api_key=OPENAI_API_KEY)
         else:
             raise ValueError("Invalid model. Choose 'gemini' or 'gpt'.")
@@ -59,63 +81,62 @@ class ChatbotWithMongoMemory:
         self.memory = {}
         self._load_memory()
 
-    # ======[ Load user memory ]====== #
     def _load_memory(self):
         if memory_col:
             doc = memory_col.find_one({"user_id": self.user_id})
-            self.memory = doc["data"] if doc else {}
+            self.memory = doc.get("data", {}) if doc else {}
 
-    # ======[ Save memory ]====== #
-    def _save_memory(self):
-        if memory_col:
-            memory_col.update_one(
-                {"user_id": self.user_id},
-                {"$set": {"data": self.memory}},
-                upsert=True
-            )
-
-    # ======[ Save history message ]====== #
     def _save_history(self, role, text):
         if history_col:
             history_col.insert_one({"user_id": self.user_id, "role": role, "text": text})
 
-    # ======[ Get chat history for GPT messages ]====== #
-    def _get_history_messages(self):
-        messages = [{"role": "system", "content": self.system_prompt}]
-        if history_col:
-            msgs = list(history_col.find({"user_id": self.user_id}))
-            for m in msgs:
-                messages.append({"role": m['role'], "content": m['text']})
+    def _get_history_messages(self, is_gemini=False):
+        messages = []
+        if is_gemini:
+            # Gemini uses a different format
+            if history_col:
+                msgs = list(history_col.find({"user_id": self.user_id}))
+                for m in msgs:
+                    # Gemini expects "user" and "model" roles
+                    role = "user" if m["role"] == "user" else "model"
+                    messages.append({"role": role, "parts": [{"text": m["text"]}]})
+        else:
+            # Standard OpenAI format
+            messages.append({"role": "system", "content": self.system_prompt})
+            if history_col:
+                msgs = list(history_col.find({"user_id": self.user_id}))
+                for m in msgs:
+                    messages.append({"role": m["role"], "content": m["text"]})
         return messages
 
-    # ======[ Chat main method ]====== #
     def chat(self, user_input: str):
         if self.model_type == "gemini":
             return self._chat_gemini(user_input)
         else:
             return self._chat_gpt(user_input)
 
-    # ======[ Gemini chat ]====== #
     def _chat_gemini(self, user_input: str):
         memory_context = ""
         if self.memory:
             memory_context = "Known facts: " + ", ".join(f"{k}: {v}" for k, v in self.memory.items())
 
         prompt = f"{memory_context}\n\nUser: {user_input}\nAssistant:"
-        response = self.model.generate_content(prompt)
+
+        # Send message through the chat session to maintain history
+        response = self.chat_session.send_message(prompt)
         answer = response.text.strip()
 
         self._save_history("user", user_input)
-        self._save_history("assistant", answer)
+        self._save_history("model", answer)
         return answer
 
-    # ======[ GPT chat ]====== #
     def _chat_gpt(self, user_input: str):
         messages = self._get_history_messages()
-        messages.append({"role": "user", "content": user_input})
         if self.memory:
             memory_context = "Known facts: " + ", ".join(f"{k}: {v}" for k, v in self.memory.items())
             messages[0]["content"] += f"\n\n{memory_context}"
+
+        messages.append({"role": "user", "content": user_input})
 
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
@@ -124,6 +145,7 @@ class ChatbotWithMongoMemory:
             temperature=0.7
         )
         answer = response.choices[0].message.content.strip()
+
         self._save_history("user", user_input)
         self._save_history("assistant", answer)
         return answer
@@ -135,22 +157,38 @@ def index():
 
 @app.route('/ai', methods=['GET'])
 def ai_query():
+    # Check for essential environment variables first
+    if not MONGO_URI:
+        return jsonify({
+            "error": "The server is not configured correctly. Missing MONGO_URI. "
+                     "Please set it in your Vercel deployment environment."
+        }), 500
+
+    if not any(GEMINI_API_KEY) and not OPENAI_API_KEY:
+        return jsonify({
+            "error": "The server is not configured correctly. Missing API keys. "
+                     "Please set GEMINI_API_KEY or OPENAI_API_KEY in your Vercel deployment environment."
+        }), 500
+
     try:
         query = request.args.get('query')
         user_id = request.args.get('id')
         model = request.args.get('model')
         system_prompt = request.args.get('system_prompt')
 
-        if not query or not user_id or not model:
-            return jsonify({"error": "Missing parameters: query, id, model"}), 400
+        if not all([query, user_id, model]):
+            return jsonify({"error": "Missing required parameters: query, id, model"}), 400
         if model.lower() not in ["gemini", "gpt"]:
-            return jsonify({"error": "Invalid model. Choose gemini or gpt"}), 400
+            return jsonify({"error": "Invalid model. Choose 'gemini' or 'gpt'."}), 400
 
-        bot_key = f"{user_id}_{model.lower()}"
-        if bot_key not in bots:
-            bots[bot_key] = ChatbotWithMongoMemory(user_id, model, system_prompt)
+        # Create a new bot instance for each request to be stateless
+        bot = ChatbotWithMongoMemory(user_id, model, system_prompt)
+        response = bot.chat(query)
 
-        response = bots[bot_key].chat(query)
         return jsonify({"response": response, "Developer": "Sanchit"})
+    except ValueError as ve:
+        return jsonify({"error": str(ve)}), 400
     except Exception as e:
-        return jsonify({"error": str(e), "Contact": "Sanchit"}), 500
+        # Log the full error for debugging
+        print(f"An unexpected error occurred: {e}")
+        return jsonify({"error": "An internal server error occurred.", "Contact": "Sanchit"}), 500
