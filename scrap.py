@@ -132,7 +132,7 @@ class ChatbotWithMongoMemory:
 @app.route('/')
 def index():
     return "Working"
-    
+
 @app.route('/ai', methods=['GET'])
 def ai_query():
     try:
