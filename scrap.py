@@ -191,4 +191,4 @@ def ai_query():
     except Exception as e:
         # Log the full error for debugging
         print(f"An unexpected error occurred: {e}")
-        return jsonify({"error": "An internal server error occurred.", "Contact": "Sanchit"}), 500
+        return jsonify({"error": str(e), "Contact": "Sanchit"}), 500
