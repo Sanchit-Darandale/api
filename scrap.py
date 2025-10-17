@@ -84,10 +84,13 @@ class ChatbotWithMongoMemory:
         return answer
 
 # ======[ Routes ]====== #
-@app.route('/ai', methods=['POST'])
+@app.route('/ai', methods=['GET', 'POST'])
 def ai_query():
     try:
-        data = request.json
+        if request.method == 'POST':
+            data = request.json
+        else:  # GET request
+            data = request.args
         query = data.get('query')
         user_id = data.get('id')
         system_prompt = data.get('system_prompt', None)
@@ -103,6 +106,7 @@ def ai_query():
     except Exception as e:
         print("Error:", e)
         return jsonify({"error": str(e), "Contact": "Sanchit"}), 500
+
 
 @app.route('/')
 def index():
