@@ -64,7 +64,7 @@ class ChatbotWithMongoMemory:
                 raise ValueError("Missing GEMINI_API_KEY environment variable.")
             genai.configure(api_key=gemini_key)
             self.model = genai.GenerativeModel(
-                "gemini-1.5-flash",
+                "gemini-2.5-flash",
                 system_instruction=self.system_prompt
             )
             # Start a chat session to load history
