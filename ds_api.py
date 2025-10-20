@@ -9,8 +9,8 @@ from fastapi.responses import JSONResponse, FileResponse
 app = FastAPI()
 
 GEMINI_API_KEYS = os.getenv("GEMINI_API_KEYS", "").split(" ")  
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") 
-MONGO_URI = os.getenv("MONGO_URI")  
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "") 
+MONGO_URI = os.getenv("MONGO_URI", "")  
 PORT = int(os.getenv("PORT", 8000)) 
 
 bots = {}
