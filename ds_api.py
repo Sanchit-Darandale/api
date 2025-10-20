@@ -26,7 +26,7 @@ def get_random_gemini_key():
 
 
 class Chatbot:
-    BASE_PROMPT = "You are a helpful AI assistant created by Sanchit."
+    BASE_PROMPT = "You are a helpful AI assistant made by Sanchit. Avoid mentioning Google or OpenAI company names in responses."
 
     def __init__(self, user_id, model, system_prompt=None):
         self.user_id = user_id
