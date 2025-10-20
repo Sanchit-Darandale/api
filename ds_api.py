@@ -89,12 +89,19 @@ async def self_ping_task():
 def index():
     return FileResponse("docs.html")
 
-@app.get("/ai")
+@app.api_route("/ai", methods=["GET", "POST"])
 async def ai(request: Request):
-    query = request.query_params.get("query")
-    user_id = request.query_params.get("id")
-    model = request.query_params.get("model")
-    system_prompt = request.query_params.get("system_prompt", "")
+    if request.method == "GET":
+        query = request.query_params.get("query")
+        user_id = request.query_params.get("id")
+        model = request.query_params.get("model")
+        system_prompt = request.query_params.get("system_prompt", "")
+    else:  # POST
+        data = await request.json()
+        query = data.get("query")
+        user_id = data.get("id")
+        model = data.get("model")
+        system_prompt = data.get("system_prompt", "")
 
     if not query or not user_id or not model:
         return JSONResponse({"error": "Missing parameters"}, status_code=400)
