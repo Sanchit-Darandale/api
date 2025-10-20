@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse, FileResponse
+import random, os, httpx
 import google.generativeai as genai
 from openai import OpenAI
 from pymongo import MongoClient
-import random, os
+from fastapi import FastAPI, Request
+from fastapi_utils.tasks import repeat_every
+from fastapi.responses import JSONResponse, FileResponse
 
 app = FastAPI()
 
@@ -64,6 +65,23 @@ class Chatbot:
         self._save_history("user", user_input)
         self._save_history("assistant", reply)
         return reply
+
+
+@app.get("/ping")
+async def ping():
+    return JSONResponse({"status": "alive"})
+
+# ===== Self-ping to keep the app awake =====
+@app.on_event("startup")
+@repeat_every(seconds=300)  # every 5 minutes
+async def self_ping_task():
+    try:
+        url = "https://ds-chatbot-api-platform.onrender.com/ping"  # replace with your Render deployment URL
+        async with httpx.AsyncClient() as client:
+            await client.get(url)
+        print("Self-ping successful")
+    except Exception as e:
+        print(f"Self-ping failed: {e}")
 
 
 @app.get("/")
