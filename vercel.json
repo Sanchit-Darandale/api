@@ -2,11 +2,11 @@
   "version": 2,
   "builds": [
     {
-      "src": "scrap.py",
+      "src": "ds_api.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "scrap.py" }
+    { "src": "/(.*)", "dest": "ds_api.py" }
   ]
 }
