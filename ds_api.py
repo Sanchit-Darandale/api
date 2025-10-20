@@ -1,4 +1,4 @@
-import random, os, httpx
+import random, os, httpx, uvicorn
 import google.generativeai as genai
 from openai import OpenAI
 from pymongo import MongoClient
@@ -11,6 +11,7 @@ app = FastAPI()
 GEMINI_API_KEYS = os.getenv("GEMINI_API_KEYS", "").split(" ")  
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") 
 MONGO_URI = os.getenv("MONGO_URI")  
+PORT = int(os.getenv("PORT", 8000)) 
 
 bots = {}
 last_gemini_key = None
@@ -108,3 +109,6 @@ async def ai(request: Request):
         return {"response": answer, "developer": "Sanchit"}
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
+if __name__ == "__main__":
+    uvicorn.run("ds_api:app", host="0.0.0.0", port=port, reload=True)
