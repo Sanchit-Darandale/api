@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 import google.generativeai as genai
 from openai import OpenAI
 from pymongo import MongoClient
@@ -69,6 +69,10 @@ class Chatbot:
         self._save_history("assistant", reply)
         return reply
 
+
+@app.get("/")
+def index():
+    return FileResponse("doc.html")
 
 @app.get("/ai")
 async def ai(request: Request):
