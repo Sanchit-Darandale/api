@@ -1,5 +1,8 @@
 fastapi
 uvicorn
+gunicorn
+httpx
+fastapi-utils
 pymongo
 openai
 google-generativeai
