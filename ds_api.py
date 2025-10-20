@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse, FileResponse
 app = FastAPI()
 
 GEMINI_API_KEYS = os.getenv("GEMINI_API_KEYS", "").split(" ")  
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "") 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "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") 
 MONGO_URI = os.getenv("MONGO_URI", "")  
 PORT = int(os.getenv("PORT", 8000)) 
 
