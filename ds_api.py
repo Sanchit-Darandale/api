@@ -72,7 +72,7 @@ class Chatbot:
 
 @app.get("/")
 def index():
-    return FileResponse("doc.html")
+    return FileResponse("docs.html")
 
 @app.get("/ai")
 async def ai(request: Request):
