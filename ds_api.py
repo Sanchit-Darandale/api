@@ -7,13 +7,9 @@ import random, os
 
 app = FastAPI()
 
-GEMINI_API_KEYS = [
-    "AIzaSyCQuTar_2bLWkRCq6dNRdCgCo4J0Khd41g",
-    "AIzaSyA3JariBIkf6YFcWKNtazIzmOU5H3kpIGY",
-    "AIzaSyAz0qDdrSQhqM-Q9fknLQi0gCjqR9yqfds"
-]
-OPENAI_API_KEY = "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"
-MONGO_URI = "mongodb+srv://sanchit:sanchit@cluster0.tirgmqi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+GEMINI_API_KEYS = os.getenv("GEMINI_API_KEYS", "").split(" ")  
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") 
+MONGO_URI = os.getenv("MONGO_URI")  
 
 bots = {}
 last_gemini_key = None
