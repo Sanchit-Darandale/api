@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 gunicorn
+typing-inspect
 httpx
 fastapi-utils
 pymongo
