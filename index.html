@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DS Chatbot API Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/4712/4712027.png">
+
+  <style>
+    :root {
+      --background: 222.2 84% 4.9%;
+      --foreground: 210 40% 98%;
+      --card: 222.2 84% 4.9%;
+      --card-foreground: 210 40% 98%;
+      --popover: 222.2 84% 4.9%;
+      --popover-foreground: 210 40% 98%;
+      --primary: 217.2 91.2% 59.8%;
+      --primary-foreground: 222.2 84% 4.9%;
+      --secondary: 217.2 32.6% 17.5%;
+      --secondary-foreground: 210 40% 98%;
+      --muted: 217.2 32.6% 17.5%;
+      --muted-foreground: 215 20.2% 65.1%;
+      --accent: 217.2 91.2% 59.8%;
+      --accent-foreground: 222.2 84% 4.9%;
+      --destructive: 0 62.8% 30.6%;
+      --destructive-foreground: 210 40% 98%;
+      --border: 217.2 32.6% 17.5%;
+      --input: 217.2 32.6% 17.5%;
+      --ring: 224.3 76.3% 94.1%;
+      --radius: 0.5rem;
+    }
+
+    .light {
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+      --popover: 0 0% 100%;
+      --popover-foreground: 222.2 84% 4.9%;
+      --primary: 221.2 83.2% 53.3%;
+      --primary-foreground: 210 40% 98%;
+      --secondary: 210 40% 96%;
+      --secondary-foreground: 222.2 84% 4.9%;
+      --muted: 210 40% 96%;
+      --muted-foreground: 215 25% 30%;
+      --accent: 210 40% 98%;
+      --accent-foreground: 222.2 84% 4.9%;
+      --destructive: 0 84.2% 60.2%;
+      --destructive-foreground: 210 40% 98%;
+      --border: 214.3 31.8% 91.4%;
+      --input: 214.3 31.8% 91.4%;
+      --ring: 222.2 84% 4.9%;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: hsl(var(--background));
+      color: hsl(var(--foreground));
+      transition: background-color 0.3s ease, color 0.3s ease;
+      min-height: 100vh;
+    }
+
+    .card {
+      background-color: hsl(var(--card));
+      border: 1px solid hsl(var(--border));
+      border-radius: var(--radius);
+    }
+
+    .muted {
+      color: hsl(var(--muted-foreground));
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background-color: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+
+    .btn-primary:hover {
+      background-color: hsl(var(--primary) / 0.9);
+    }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background-color: transparent;
+      color: hsl(var(--foreground));
+      border: 1px solid hsl(var(--border));
+      border-radius: var(--radius);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+
+    .btn-outline:hover {
+      background-color: hsl(var(--accent));
+      color: hsl(var(--accent-foreground));
+    }
+
+    .theme-toggle {
+      padding: 0.5rem;
+      border-radius: var(--radius);
+      border: 1px solid hsl(var(--border));
+      background-color: hsl(var(--background));
+      color: hsl(var(--foreground));
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .theme-toggle:hover {
+      background-color: hsl(var(--muted));
+    }
+
+    /* Loading Screen */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background-color: hsl(var(--background));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 0.5s;
+    }
+
+    #loading-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loader-container {
+      text-align: center;
+    }
+
+    .loader-logo {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 2rem;
+      position: relative;
+    }
+
+    .loader-ring {
+      position: absolute;
+      inset: 0;
+      border: 4px solid hsl(var(--primary) / 0.2);
+      border-radius: 50%;
+      animation: spin 3s linear infinite;
+    }
+
+    .loader-ring::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 8px;
+      height: 8px;
+      background: hsl(var(--primary));
+      border-radius: 50%;
+    }
+
+    .loader-circle {
+      position: absolute;
+      inset: 12px;
+      background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .loader-circle svg {
+      width: 40px;
+      height: 40px;
+      color: hsl(var(--primary-foreground));
+    }
+
+    .loader-text {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: hsl(var(--foreground));
+      margin-bottom: 1rem;
+    }
+
+    .loader-subtext {
+      color: hsl(var(--muted-foreground));
+      margin-bottom: 1.5rem;
+    }
+
+    .progress-bar {
+      width: 256px;
+      height: 8px;
+      background: hsl(var(--muted));
+      border-radius: 9999px;
+      overflow: hidden;
+      margin: 0 auto;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)));
+      width: 0%;
+      transition: width 0.3s ease-out;
+    }
+
+    .progress-percent {
+      color: hsl(var(--primary));
+      font-size: 0.875rem;
+      margin-top: 0.75rem;
+      font-family: monospace;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loader-container">
+      <div class="loader-logo">
+        <div class="loader-ring"></div>
+        <div class="loader-circle">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+          </svg>
+        </div>
+      </div>
+      <h2 class="loader-text">DS API Platform</h2>
+      <p class="loader-subtext">Loading Dashboard...</p>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <p class="progress-percent" id="progress-percent">0%</p>
+    </div>
+  </div>
+
+  <!-- Theme Toggle -->
+  <button id="themeToggle" class="theme-toggle" style="position: fixed; top: 1rem; right: 1rem; z-index: 1000;">
+    <svg id="sunIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+    </svg>
+    <svg id="moonIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  </button>
+  
+  <!-- Hero Section -->
+  <section class="container mx-auto px-4 py-20">
+    <div class="max-w-4xl mx-auto text-center space-y-6">
+      <h1 class="text-5xl md:text-6xl font-bold tracking-tight">
+        DS Chatbot API Platform
+      </h1>
+      <p class="text-xl muted max-w-2xl mx-auto">
+        Power your applications with intelligent conversational AI. 
+        Simple, secure, and scalable chatbot API for developers.
+      </p>
+      
+      <div class="flex gap-4 justify-center pt-4 flex-wrap">
+        <a href="docs.html">
+          <button class="btn-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+            View Documentation
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+        </a>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Features Section -->
+  <section class="container mx-auto px-4 py-16">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-12">Why Choose Our API?</h2>
+      
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="card p-6 space-y-3">
+          <div class="h-12 w-12 rounded-lg flex items-center justify-center" style="background-color: var(--muted);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold">Lightning Fast</h3>
+          <p class="muted">
+            Get responses in milliseconds with our optimized infrastructure 
+            designed for real-time conversations.
+          </p>
+        </div>
+
+        <div class="card p-6 space-y-3">
+          <div class="h-12 w-12 rounded-lg flex items-center justify-center" style="background-color: var(--muted);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold">Secure & Reliable</h3>
+          <p class="muted">
+            Enterprise-grade security with API key authentication and 
+            99.9% uptime guarantee.
+          </p>
+        </div>
+
+        <div class="card p-6 space-y-3">
+          <div class="h-12 w-12 rounded-lg flex items-center justify-center" style="background-color: var(--muted);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"/>
+              <polyline points="8 6 2 12 8 18"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold">Developer Friendly</h3>
+          <p class="muted">
+            RESTful API with comprehensive documentation and code examples 
+            in multiple languages.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start Section -->
+  <section class="container mx-auto px-4 py-16">
+    <div class="max-w-3xl mx-auto">
+      <div class="card p-8 space-y-6">
+        <div class="space-y-2">
+          <h2 class="text-2xl font-bold">Quick Start</h2>
+          <p class="muted">
+            Get started with just a few lines of code
+          </p>
+        </div>
+        
+        <div class="rounded-lg p-4 space-y-2" style="background-color: var(--muted);">
+          <div class="flex items-center gap-2 text-xs muted mb-2">
+            <div class="h-3 w-3 rounded-full bg-red-500"></div>
+            <div class="h-3 w-3 rounded-full bg-yellow-500"></div>
+            <div class="h-3 w-3 rounded-full bg-green-500"></div>
+            <span class="ml-2">cURL Example</span>
+          </div>
+          <pre class="text-sm font-mono overflow-x-auto"><code>curl -X POST "https://ds-chatbot-api-platform.onrender.com/ai" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "query": "What is AI?",
+       "id": "user101",
+           "model": "gemini",
+           "system_prompt": "You are a helpful assistant."
+         }'</code></pre>
+        </div>
+        
+        <a href="docs.html">
+          <button class="btn-outline w-full">
+            Read Full Documentation
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+        </a>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Base URL Info -->
+  <section class="container mx-auto px-4 py-16">
+    <div class="max-w-2xl mx-auto text-center space-y-4">
+      <h2 class="text-2xl font-bold">API Base URL</h2>
+      <div class="rounded-lg p-6" style="background-color: var(--muted);">
+        <code class="text-lg font-mono">
+          https://ds-chatbot-api-platform.onrender.com/ai
+        </code>
+      </div>
+      <p class="text-sm muted">
+        All API endpoints are relative to this base URL
+      </p>
+    </div>
+  </section>
+  
+  <!-- Footer -->
+  <footer class="border-t mt-16 py-8" style="border-color: var(--border);">
+    <div class="container mx-auto px-4 text-center space-y-4">
+      <div class="flex justify-center gap-6 text-sm">
+        <a href="docs.html" class="muted hover:opacity-70 transition-opacity">
+          Documentation
+        </a>
+        <a href="https://github.com/sanchit-darandale" target="_blank" rel="noopener noreferrer" class="muted hover:opacity-70 transition-opacity">
+          Developer
+        </a>
+        <!--
+        <a href="https://ds-chatbot-api-platform.onrender.com" target="_blank" rel="noopener noreferrer" class="muted hover:opacity-70 transition-opacity">
+          API Platform
+        </a>-->
+      </div>
+      <p class="text-sm muted">
+        © 2025 DS Chatbot API Platform. All rights reserved.
+      </p>
+    </div>
+  </footer>
+  
+  <!-- Shared behaviour script -->
+  <script src="theme.js"></script>
+
+  <script>
+    // Additional functionality can be added here if needed
+  </script>
+</body>
+</html>
