@@ -5,8 +5,18 @@ from pymongo import MongoClient
 from fastapi import FastAPI, Request
 from fastapi_utils.tasks import repeat_every
 from fastapi.responses import JSONResponse, FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"], 
+    allow_headers=["*"],  
+)
 
 GEMINI_API_KEYS = os.getenv("GEMINI_API_KEYS", "").split(" ")  
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "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") 
