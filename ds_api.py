@@ -127,7 +127,7 @@ async def ai(request: Request):
 
     try:
         answer = bots[bot_key].chat(query)
-        return {"response": answer, "developer": "Sanchit"}
+        return {"question": query, "response": answer, "developer": "Sanchit"}
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
