@@ -95,9 +95,13 @@ async def self_ping_task():
         print(f"Self-ping failed: {e}")
 
 
+@app.get("/docs")
+def docs():
+    return FileResponse("docs.html")
+
 @app.get("/")
 def index():
-    return FileResponse("docs.html")
+    return FileResponse("index.html")
 
 @app.api_route("/ai", methods=["GET", "POST"])
 async def ai(request: Request):
