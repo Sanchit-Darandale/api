@@ -1,279 +1,526 @@
-# AI Chatbot API
+# DS API Platform Usage Guide
 
-This is a Flask-based API for an AI chatbot that uses Google's Gemini AI model with MongoDB for storing chat history and user memory.
+This guide provides comprehensive examples and best practices for integrating with the DS API Platform, a unified chatbot API powered by OpenAI GPT and Google Gemini models with MongoDB memory persistence.
 
-## Features
+## Table of Contents
+- [Getting Started](#getting-started)
+- [API Endpoint](#api-endpoint)
+- [User ID Management](#user-id-management)
+- [Request Examples](#request-examples)
+- [Code Integration Examples](#code-integration-examples)
+- [Full Chat Interface Example](#full-chat-interface-example)
+- [Best Practices](#best-practices)
+- [Troubleshooting](#troubleshooting)
 
-- Conversational AI using Gemini 2.5 Flash model
-- Persistent chat history per user
-- User memory (remembers facts like names)
-- Customizable system prompts
-- Web interface included
+## Getting Started
 
+### Prerequisites
+- Basic knowledge of HTTP requests (GET/POST)
+- Familiarity with JSON data format
+- For web integrations: JavaScript and localStorage API
 
-## API Usage
-
-### Endpoint: `/ai`
-
-**Method:** GET
-
-**Parameters:**
-- `query` (required): The user's message
-- `id` (required): Unique user identifier for storing history
-- `system_prompt` (optional): Custom system prompt for the AI
-
-**Example Request:**
+### Base URL
 ```
-GET /ai?query=Hello&system_prompt=You+are+a+helpful+assistant&id=user123
+https://ds-chatbot-api-platform.onrender.com/ai
 ```
 
-**Response:**
+## API Endpoint
+
+### Endpoint Details
+- **URL**: `/ai`
+- **Methods**: GET, POST
+- **Content-Type**: `application/json` (for POST requests)
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | string | Yes | User input or question for the chatbot |
+| `id` | string | Yes | Unique user ID for storing chat history in MongoDB |
+| `model` | string | Yes | AI model to use: `"gpt"` or `"gemini"` |
+| `system_prompt` | string | No | Custom system prompt for AI behavior |
+
+### Response Format
 ```json
 {
-  "response": "Hello! How can I help you today?"
+  "response": "AI-generated response text",
+  "Developer": "Sanchit"
 }
 ```
 
-**Error Response:**
-```json
-{
-  "error": "Missing required parameters: query and id"
-}
-```
+## User ID Management
 
-## Integrating into Your Website
+### Why User IDs Matter
+User IDs enable persistent chat memory across sessions. Each unique ID maintains its own conversation history in MongoDB.
 
-### 1. Generate User ID
+### Storing User ID in localStorage
 
-To maintain chat history, each user needs a unique ID. Use localStorage to store and retrieve the user ID:
-
+#### JavaScript Example
 ```javascript
-// Generate or retrieve user ID
+// Generate and store user ID
 let userId = localStorage.getItem('chatbot_user_id');
 if (!userId) {
     userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('chatbot_user_id', userId);
+    console.log('New user ID generated:', userId);
+} else {
+    console.log('Existing user ID retrieved:', userId);
+}
+
+// Use the userId in your API calls
+console.log('Ready to use userId:', userId);
+```
+
+#### Key Points
+- **Persistence**: localStorage survives browser sessions
+- **Uniqueness**: Combine timestamp and random string for uniqueness
+- **Fallback**: Always check if ID exists before generating new one
+- **Security**: User IDs are not sensitive; they're just identifiers
+
+### Alternative Storage Methods
+
+#### Session Storage (temporary)
+```javascript
+// Session storage - clears when tab closes
+let userId = sessionStorage.getItem('chatbot_user_id');
+if (!userId) {
+    userId = 'session_' + Date.now();
+    sessionStorage.setItem('chatbot_user_id', userId);
 }
 ```
 
-### 2. Send Messages to API
-
-Use fetch API to send messages:
-
+#### Cookies (cross-domain)
 ```javascript
-async function sendMessage(message, systemPrompt = '') {
-    const url = `/ai?query=${encodeURIComponent(message)}&id=${encodeURIComponent(userId)}${systemPrompt ? '&system_prompt=' + encodeURIComponent(systemPrompt) : ''}`;
+// Set cookie that expires in 30 days
+function setUserIdCookie(userId) {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + (30 * 24 * 60 * 60 * 1000)); // 30 days
+    document.cookie = `chatbot_user_id=${userId};expires=${expires.toUTCString()};path=/`;
+}
+
+// Get cookie
+function getUserIdCookie() {
+    const name = 'chatbot_user_id=';
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const cookies = decodedCookie.split(';');
+    for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.indexOf(name) === 0) {
+            return cookie.substring(name.length);
+        }
+    }
+    return null;
+}
+```
+
+## Request Examples
+
+### GET Request
+```bash
+curl "https://ds-chatbot-api-platform.onrender.com/ai?query=Hello&model=gpt&id=user123"
+```
+
+### POST Request
+```bash
+curl -X POST "https://ds-chatbot-api-platform.onrender.com/ai" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "query": "Explain neural networks in simple terms.",
+       "model": "gemini",
+       "id": "user456",
+       "system_prompt": "Answer in a concise technical format."
+     }'
+```
+
+## Code Integration Examples
+
+### Python
+```python
+import requests
+
+def chat_with_ai(query, user_id, model='gpt', system_prompt=None):
+    url = 'https://ds-chatbot-api-platform.onrender.com/ai'
+    data = {
+        'query': query,
+        'model': model,
+        'id': user_id
+    }
+    if system_prompt:
+        data['system_prompt'] = system_prompt
+
+    response = requests.post(url, json=data)
+    return response.json()
+
+# Usage
+result = chat_with_ai("What is machine learning?", "user789")
+print(result['response'])
+```
+
+### JavaScript (Browser)
+```javascript
+async function sendMessageToAI(message, userId, model = 'gpt') {
+    const url = 'https://ds-chatbot-api-platform.onrender.com/ai';
+    const data = {
+        query: message,
+        model: model,
+        id: userId
+    };
 
     try {
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data.response) {
-            return data.response;
-        } else {
-            throw new Error(data.error || 'Unknown error call developer (Sanchit)');
-        }
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        return result.response;
     } catch (error) {
         console.error('Error:', error);
         return 'Sorry, there was an error processing your request.';
     }
 }
-```
 
-### 3. Example HTML Structure
-
-```html
-<div id="chatContainer">
-    <!-- Messages will appear here -->
-</div>
-<input type="text" id="userInput" placeholder="Type your message...">
-<button onclick="sendMessage(document.getElementById('userInput').value)">Send</button>
-
-<script>
-    let userId = localStorage.getItem('chatbot_user_id');
-    if (!userId) {
-        userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('chatbot_user_id', userId);
-    }
-
-    async function sendMessage(message) {
-        // Add user message to chat
-        addMessage(message, true);
-
-        // Get AI response
-        const response = await sendMessageToAPI(message);
-        addMessage(response, false);
-    }
-
-    function addMessage(message, isUser) {
-        const chatContainer = document.getElementById('chatContainer');
-        const messageDiv = document.createElement('div');
-        messageDiv.className = isUser ? 'user-message' : 'bot-message';
-        messageDiv.textContent = message;
-        chatContainer.appendChild(messageDiv);
-    }
-</script>
-```
-
-## Method 1: Username as User ID (Simple)
-
-If you want to use the username directly as the user ID:
-
-```javascript
-// After successful login
-const userId = username; // Use username directly
-localStorage.setItem('chatbot_user_id', userId);
-
-// Then use in API calls
-const response = await fetch(`/ai?query=${message}&id=${userId}`);
-```
-
-## Method 2: Hashed Username + Password (Recommended)
-
-Generate a consistent hash from username and password combination:
-
-```javascript
-function generateUserId(username, password) {
-    // Simple hash for demo - use crypto libraries in production
-    const combined = username + password + "your_salt_here";
-    let hash = 0;
-    for (let i = 0; i < combined.length; i++) {
-        const char = combined.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-    }
-    return 'user_' + Math.abs(hash).toString(36);
+// Usage with localStorage user ID
+let userId = localStorage.getItem('chatbot_user_id');
+if (!userId) {
+    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('chatbot_user_id', userId);
 }
 
-// Usage after login
-const userId = generateUserId(username, password);
-localStorage.setItem('chatbot_user_id', userId);
+sendMessageToAI("Hello!", userId).then(response => {
+    console.log('AI Response:', response);
+});
 ```
 
+### Java
+```java
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse.BodyHandlers;
 
-### 3. API Calls with User ID
+public class ChatbotClient {
+    private static final String API_URL = "https://ds-chatbot-api-platform.onrender.com/ai";
 
-```javascript
-async function sendMessage(message, userId, systemPrompt = '') {
-    const params = new URLSearchParams({
-        query: message,
-        id: userId
-    });
+    public static String sendMessage(String query, String userId, String model) throws IOException, InterruptedException {
+        String json = String.format("""
+            {
+                "query": "%s",
+                "model": "%s",
+                "id": "%s"
+            }
+            """, query, model, userId);
 
-    if (systemPrompt) {
-        params.append('system_prompt', systemPrompt);
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(API_URL))
+            .header("Content-Type", "application/json")
+            .POST(BodyPublishers.ofString(json))
+            .build();
+
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+        return response.body();
     }
 
-    const response = await fetch(`/ai?${params}`);
-    const data = await response.json();
-
-    if (data.error) {
-        throw new Error(data.error);
+    public static void main(String[] args) {
+        try {
+            String response = sendMessage("What is machine learning?", "user789", "gpt");
+            System.out.println(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-
-    return data.response;
 }
 ```
 
-## Complete Example
+### C++
+```cpp
+#include <iostream>
+#include <curl/curl.h>
+#include <string>
 
-Here's a complete login and chat integration:
+size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
+
+std::string sendChatMessage(const std::string& query, const std::string& userId, const std::string& model) {
+    CURL* curl;
+    CURLcode res;
+    std::string readBuffer;
+
+    curl = curl_easy_init();
+    if(curl) {
+        std::string jsonData = "{\"query\":\"" + query + "\",\"model\":\"" + model + "\",\"id\":\"" + userId + "\"}";
+
+        curl_easy_setopt(curl, CURLOPT_URL, "https://ds-chatbot-api-platform.onrender.com/ai");
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonData.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+        struct curl_slist *headers = NULL;
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+        res = curl_easy_perform(curl);
+        if(res != CURLE_OK) {
+            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+        }
+
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+    }
+    return readBuffer;
+}
+
+int main() {
+    std::string response = sendChatMessage("What is machine learning?", "user789", "gpt");
+    std::cout << response << std::endl;
+    return 0;
+}
+```
+
+## Full Chat Interface Example
+
+Here's a complete HTML/JavaScript chat interface that demonstrates user ID management, message sending, and response handling:
 
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login & Chat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DS API Chatbot Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        #chatContainer {
+            border: 1px solid #ccc;
+            height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: white;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            text-align: right;
+        }
+        .bot-message {
+            background-color: #e9ecef;
+            color: #333;
+        }
+        #messageInput {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #modelSelect {
+            margin-left: 10px;
+            padding: 5px;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-    <div id="loginForm">
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button onclick="login()">Login</button>
-    </div>
-
-    <div id="chatInterface" style="display: none;">
-        <div id="chatMessages"></div>
-        <input type="text" id="messageInput" placeholder="Type message...">
-        <button onclick="sendMessage()">Send</button>
-    </div>
+    <h1>DS API Chatbot</h1>
+    <div id="chatContainer"></div>
+    <input type="text" id="messageInput" placeholder="Type your message...">
+    <select id="modelSelect">
+        <option value="gpt">GPT</option>
+        <option value="gemini">Gemini</option>
+    </select>
+    <button onclick="sendMessage()">Send</button>
 
     <script>
-        function generateUserId(username, password) {
-            const combined = username + password + "chatbot_salt_2024";
-            let hash = 0;
-            for (let i = 0; i < combined.length; i++) {
-                hash = ((hash << 5) - hash) + combined.charCodeAt(i);
-                hash = hash & hash;
-            }
-            return 'user_' + Math.abs(hash).toString(36);
-        }
-
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            if (!username || !password) {
-                alert('Please enter username and password');
-                return;
-            }
-
-            // Generate and store user ID
-            const userId = generateUserId(username, password);
+        // User ID Management
+        let userId = localStorage.getItem('chatbot_user_id');
+        if (!userId) {
+            userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             localStorage.setItem('chatbot_user_id', userId);
-            localStorage.setItem('chatbot_username', username);
-
-            // Show chat interface
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('chatInterface').style.display = 'block';
+            console.log('New user ID generated and stored:', userId);
+        } else {
+            console.log('Existing user ID loaded:', userId);
         }
+
+        // Display user ID info
+        const infoDiv = document.createElement('div');
+        infoDiv.style.fontSize = '12px';
+        infoDiv.style.color = '#666';
+        infoDiv.style.marginBottom = '10px';
+        infoDiv.textContent = `Your User ID: ${userId}`;
+        document.body.insertBefore(infoDiv, document.getElementById('chatContainer'));
 
         async function sendMessage() {
-            const messageInput = document.getElementById('messageInput');
-            const message = messageInput.value.trim();
-            const userId = localStorage.getItem('chatbot_user_id');
+            const message = document.getElementById('messageInput').value.trim();
+            const model = document.getElementById('modelSelect').value;
 
-            if (!message || !userId) return;
+            if (!message) return;
 
             // Add user message to chat
-            addMessage(message, 'user');
-            messageInput.value = '';
+            addMessage(message, true);
+            document.getElementById('messageInput').value = '';
+
+            // Show loading indicator
+            const loadingDiv = addMessage('Thinking...', false);
+            loadingDiv.innerHTML = '<div class="loading"></div> Thinking...';
 
             try {
-                const response = await fetch(`/ai?query=${encodeURIComponent(message)}&id=${userId}`);
-                const data = await response.json();
-
-                if (data.response) {
-                    addMessage(data.response, 'bot');
-                } else {
-                    addMessage('Error: ' + data.error, 'error');
-                }
+                // Send to API
+                const response = await sendMessageToAPI(message, model);
+                loadingDiv.remove();
+                addMessage(response, false);
             } catch (error) {
-                addMessage('Network error: ' + error.message, 'error');
+                loadingDiv.remove();
+                addMessage('Error: ' + error.message, false);
             }
         }
 
-        function addMessage(text, type) {
-            const messagesDiv = document.getElementById('chatMessages');
+        async function sendMessageToAPI(message, model) {
+            const url = 'https://ds-chatbot-api-platform.onrender.com/ai';
+            const data = {
+                query: message,
+                model: model,
+                id: userId
+            };
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return result.response || 'No response received';
+        }
+
+        function addMessage(message, isUser) {
+            const chatContainer = document.getElementById('chatContainer');
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
-            messageDiv.textContent = text;
-            messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            messageDiv.className = 'message ' + (isUser ? 'user-message' : 'bot-message');
+            messageDiv.textContent = message;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return messageDiv;
         }
 
-        // Check if already logged in
-        window.onload = function() {
-            const userId = localStorage.getItem('chatbot_user_id');
-            const username = localStorage.getItem('chatbot_username');
-
-            if (userId && username) {
-                document.getElementById('username').value = username;
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('chatInterface').style.display = 'block';
+        // Allow sending message on Enter key
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
             }
-        }
+        });
+
+        // Initialize with welcome message
+        addMessage('Hello! I\'m your AI assistant. How can I help you today?', false);
     </script>
 </body>
 </html>
 ```
+
+## Best Practices
+
+### User ID Management
+- **Generate unique IDs**: Use timestamp + random string for uniqueness
+- **Persist across sessions**: Use localStorage for web apps
+- **Handle missing IDs**: Always check and generate if needed
+- **User privacy**: IDs are anonymous; no personal data required
+
+### API Usage
+- **Rate limiting**: Implement delays between requests if needed
+- **Error handling**: Always wrap API calls in try-catch blocks
+- **Model selection**: Let users choose between GPT and Gemini
+- **System prompts**: Use custom prompts for specialized behavior
+
+### Performance
+- **Caching**: Cache responses for frequently asked questions
+- **Batch requests**: Group multiple queries if possible
+- **Connection pooling**: Reuse HTTP connections in server environments
+
+### Security
+- **Input validation**: Sanitize user inputs before sending
+- **HTTPS only**: Always use HTTPS for API calls
+- **API keys**: Never expose sensitive credentials in client-side code
+
+## Troubleshooting
+
+### Common Issues
+
+#### "Invalid user ID" error
+- Ensure the `id` parameter is a non-empty string
+- Check for special characters that might cause encoding issues
+
+#### "Model not found" error
+- Verify the `model` parameter is either "gpt" or "gemini" (case-sensitive)
+
+#### CORS errors in browser
+- The API supports CORS for web applications
+- If issues persist, consider using a proxy server
+
+#### Memory not persisting
+- Each user ID maintains separate conversation history
+- Verify you're using the same ID across requests
+- Check MongoDB connection if self-hosting
+
+#### Rate limiting
+- Implement exponential backoff for retries
+- Space out requests in high-traffic applications
+
+### Debug Tips
+- Use browser developer tools to inspect network requests
+- Log user IDs and API responses for debugging
+- Test with simple queries first before complex integrations
+
+### Getting Help
+- Check the API documentation at `docs.html`
+- Review the examples in this guide
+- Test endpoints using the built-in playground in the documentation
+
+---
+
+**Developer**: Sanchit  
+**Last Updated**: 2025  
+**API Version**: 1.0
