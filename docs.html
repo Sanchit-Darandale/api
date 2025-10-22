@@ -71,7 +71,7 @@
 
     /* Sections */
     section {
-      padding: 4rem 2rem;
+      padding: 4rem 1rem 1rem;
       max-width: 64rem;
       margin: 0 auto;
     }
@@ -80,7 +80,7 @@
       font-size: 2rem;
       font-weight: 700;
       text-align: center;
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
     }
 
     /* Cards */
@@ -242,7 +242,7 @@
     .form-group label {
       display: block;
       font-weight: 600;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.8rem;
     }
 
     .form-group input,
@@ -287,26 +287,6 @@
       cursor: not-allowed;
     }
 
-    /* Features */
-    .features-list {
-      list-style: none;
-      padding: 0;
-      max-width: 48rem;
-      margin: 0 auto;
-    }
-
-    .features-list li {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
-
-    .check-icon {
-      color: hsl(var(--primary));
-      flex-shrink: 0;
-    }
-
     /* Footer */
     footer {
       text-align: center;
@@ -345,7 +325,7 @@
     .tab-buttons {
       display: flex;
       gap: 0.5rem;
-      margin-bottom: 1rem;
+      margin-bottom: 1.2rem;
       border-bottom: 1px solid;
     }
 
@@ -522,7 +502,7 @@
 
   <!-- Endpoint -->
       <section>
-        <h2>Endpoint</h2>
+        <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;"><strong>⚡ Endpoint</strong></h2>
         <div class="card">
           <div style="margin-bottom: 1.5rem;">
             <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
@@ -534,7 +514,7 @@
               <code style="color: #38bdf8; font-size: 1.125rem;">/ai</code>
             </div>
           </div>
-          <p style="margin-bottom: 2rem; opacity: 0.8;">
+          <p style="margin-bottom: 1rem; opacity: 0.8;">
             Both methods are supported. Use <strong>GET</strong> for quick browser-based testing and <strong>POST</strong> for API integration.
           </p>
 
@@ -580,10 +560,9 @@
         </div>
       </section>
       
-  <!-- Examples -->
+  <!-- Request Examples -->
       <section>
-        <h2>Example Usage</h2>
-
+        <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;"><strong>⚡ Request Examples</strong></h2>
         <div class="code-card">
           <div class="code-header">
             <h3 class="code-title">GET Request</h3>
@@ -620,123 +599,6 @@ Content-Type: application/json
 
         <div class="code-card">
           <div class="code-header">
-            <h3 class="code-title">Code Examples</h3>
-            <button class="btn-copy" data-code-index="2">
-              <svg class="icon copy-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              <span class="copy-text">Copy</span>
-            </button>
-          </div>
-          <div class="tab-buttons">
-            <button class="tab-btn active" data-lang="python">Python</button>
-            <button class="tab-btn" data-lang="java">Java</button>
-            <button class="tab-btn" data-lang="javascript">JavaScript</button>
-            <button class="tab-btn" data-lang="cpp">C++</button>
-          </div>
-          <div id="python-tab" class="tab-content active">
-            <pre><code>import requests
-
-url = 'https://ds-chatbot-api-platform.onrender.com/ai'
-data = {
-    'query': 'What is machine learning?',
-    'model': 'gpt',
-    'id': 'user789'
-}
-
-response = requests.post(url, json=data)
-result = response.json()
-print(result['response'])</code></pre>
-          </div>
-          <div id="java-tab" class="tab-content">
-            <pre><code>import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
-public class ApiTest {
-    public static void main(String[] args) throws IOException, InterruptedException {
-        String json = """
-            {
-                "query": "What is machine learning?",
-                "model": "gpt",
-                "id": "user789"
-            }
-            """;
-
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("https://ds-chatbot-api-platform.onrender.com/ai"))
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json))
-            .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println(response.body());
-    }
-}</code></pre>
-          </div>
-          <div id="javascript-tab" class="tab-content">
-            <pre><code>const response = await fetch(
-  'https://ds-chatbot-api-platform.onrender.com/ai',
-  {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query: 'What is machine learning?',
-      model: 'gpt',
-      id: 'user789'
-    })
-  }
-);
-const data = await response.json();
-console.log(data.response);</code></pre>
-          </div>
-          <div id="cpp-tab" class="tab-content">
-            <pre><code>#include <iostream>
-#include <curl/curl.h>
-#include <string>
-
-size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
-    ((std::string*)userp)->append((char*)contents, size * nmemb);
-    return size * nmemb;
-}
-
-int main() {
-    CURL* curl;
-    CURLcode res;
-    std::string readBuffer;
-
-    curl = curl_easy_init();
-    if(curl) {
-        std::string jsonData = "{"query":"What is machine learning?","model":"gpt","id":"user789"}";
-
-        curl_easy_setopt(curl, CURLOPT_URL, "https://ds-chatbot-api-platform.onrender.com/ai");
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonData.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &amp;readBuffer);
-
-        struct curl_slist *headers = NULL;
-        headers = curl_slist_append(headers, "Content-Type: application/json");
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-        res = curl_easy_perform(curl);
-        if(res != CURLE_OK) {
-            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
-        } else {
-            std::cout << readBuffer << std::endl;
-        }
-
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(curl);
-    }
-    return 0;
-}</code></pre>
-          </div>
-
-        <div class="code-card">
-          <div class="code-header">
             <h3 class="code-title">Response Format</h3>
             <button class="btn-copy" data-code-index="3">
               <svg class="icon copy-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -750,10 +612,189 @@ int main() {
   "Developer": "Sanchit"
 }</code></pre>
         </div>
+      </section>
+
+      <!-- Code Integration Examples -->
+      <section>
+        <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;"><strong>⚡ Endpoint</strong></h2>
+        <div class="code-card">
+          <div class="code-header">
+            <h3 class="code-title">Code Integration Examples</h3>
+            <button class="btn-copy" data-code-index="2">
+              <svg class="icon copy-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <span class="copy-text">Copy</span>
+            </button>
+          </div>
+          <div class="tab-buttons">
+            <button class="tab-btn active" onclick="showTab('python')">Python</button>
+            <button class="tab-btn" onclick="showTab('javascript')">JavaScript</button>
+            <button class="tab-btn" onclick="showTab('java')">Java</button>
+            <button class="tab-btn" onclick="showTab('cpp')">C++</button>
+          </div>
+
+          <div id="python-tab" class="tab-content active">
+            <h3>Python</h3>
+            <pre><code>import requests
+
+def chat_with_ai(query, user_id, model='gpt', system_prompt=None):
+    url = 'https://ds-chatbot-api-platform.onrender.com/ai'
+    data = {
+        'query': query,
+        'model': model,
+        'id': user_id
+    }
+    if system_prompt:
+        data['system_prompt'] = system_prompt
+
+    response = requests.post(url, json=data)
+    return response.json()
+
+# Usage
+result = chat_with_ai("What is machine learning?", "user789")
+print(result['response'])</code></pre>
+          </div>
+
+          <div id="javascript-tab" class="tab-content">
+            <h3>JavaScript</h3>
+            <pre><code>async function sendMessageToAI(message, userId, model = 'gpt') {
+    const url = 'https://ds-chatbot-api-platform.onrender.com/ai';
+    const data = {
+        query: message,
+        model: model,
+        id: userId
+    };
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        return result.response;
+    } catch (error) {
+        console.error('Error:', error);
+        return 'Sorry, there was an error processing your request.';
+    }
+}
+
+// Usage with localStorage user ID
+let userId = localStorage.getItem('chatbot_user_id');
+if (!userId) {
+    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('chatbot_user_id', userId);
+}
+
+sendMessageToAI("Hello!", userId).then(response => {
+    console.log('AI Response:', response);
+});</code></pre>
+          </div>
+
+          <div id="java-tab" class="tab-content">
+            <h3>Java</h3>
+            <pre><code>import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse.BodyHandlers;
+
+public class ChatbotClient {
+    private static final String API_URL = "https://ds-chatbot-api-platform.onrender.com/ai";
+
+    public static String sendMessage(String query, String userId, String model) throws IOException, InterruptedException {
+        String json = String.format("""
+            {
+                "query": "%s",
+                "model": "%s",
+                "id": "%s"
+            }
+            """, query, model, userId);
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(API_URL))
+            .header("Content-Type", "application/json")
+            .POST(BodyPublishers.ofString(json))
+            .build();
+
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+        return response.body();
+    }
+
+    public static void main(String[] args) {
+        try {
+            String response = sendMessage("What is machine learning?", "user789", "gpt");
+            System.out.println(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+          </div>
+
+          <div id="cpp-tab" class="tab-content">
+            <h3>C++</h3>
+            <pre><code>#include <iostream>
+#include <curl/curl.h>
+#include <string>
+
+size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
+
+std::string sendChatMessage(const std::string& query, const std::string& userId, const std::string& model) {
+    CURL* curl;
+    CURLcode res;
+    std::string readBuffer;
+
+    curl = curl_easy_init();
+    if(curl) {
+        std::string jsonData = "{\"query\":\"" + query + "\",\"model\":\"" + model + "\",\"id\":\"" + userId + "\"}";
+
+        curl_easy_setopt(curl, CURLOPT_URL, "https://ds-chatbot-api-platform.onrender.com/ai");
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonData.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+        struct curl_slist *headers = NULL;
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+        res = curl_easy_perform(curl);
+        if(res != CURLE_OK) {
+            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+        }
+
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+    }
+    return readBuffer;
+}
+
+int main() {
+    std::string response = sendChatMessage("What is machine learning?", "user789", "gpt");
+    std::cout << response << std::endl;
+    return 0;
+}</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- User ID Management -->
+      <section>
+        <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;"><strong>⚡ User ID Management</strong></h2>
+        <p style="text-align: left; font-size: 1.125rem; line-height: 1.75; color: hsl(var(--foreground) / 0.9); max-width: 48rem; margin: 0 0 2rem 0">
+          User IDs enable persistent chat memory. Each unique ID maintains separate conversation history in MongoDB.
+        </p>
 
         <div class="code-card">
           <div class="code-header">
-            <h3 class="code-title">How To Store UserID ?</h3>
+            <h3 class="code-title">1. Storing User ID in localStorage</h3>
             <button class="btn-copy" data-code-index="4">
               <svg class="icon copy-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -761,16 +802,77 @@ int main() {
               <span class="copy-text">Copy</span>
             </button>
           </div>
-          <pre><code>let userId = localStorage.getItem('chatbot_user_id');
+          <pre><code>// Generate and store user ID
+let userId = localStorage.getItem('chatbot_user_id');
 if (!userId) {
     userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('chatbot_user_id', userId);
+    console.log('New user ID generated:', userId);
+} else {
+    console.log('Existing user ID retrieved:', userId);
+}
+
+// Use the userId in your API calls
+console.log('Ready to use userId:', userId);</code></pre>
+        </div>
+
+        <div class="code-card">
+          <div class="code-header">
+            <h3 class="code-title">2. Storing User ID in Session Storage (temporary)</h3>
+            <button class="btn-copy" data-code-index="5">
+              <svg class="icon copy-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <span class="copy-text">Copy</span>
+            </button>
+          </div>
+          <pre><code>// Session storage - clears when tab closes
+let userId = sessionStorage.getItem('chatbot_user_id');
+if (!userId) {
+    userId = 'session_' + Date.now();
+    sessionStorage.setItem('chatbot_user_id', userId);
 }</code></pre>
         </div>
+
+        <div class="code-card">
+          <div class="code-header">
+            <h3 class="code-title">3. Storing User ID in Cookies (cross-domain)</h3>
+            <button class="btn-copy" data-code-index="6">
+              <svg class="icon copy-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <span class="copy-text">Copy</span>
+            </button>
+          </div>
+          <pre><code>// Set cookie that expires in 30 days
+function setUserIdCookie(userId) {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + (30 * 24 * 60 * 60 * 1000)); // 30 days
+    document.cookie = `chatbot_user_id=${userId};expires=${expires.toUTCString()};path=/`;
+}
+
+// Get cookie
+function getUserIdCookie() {
+    const name = 'chatbot_user_id=';
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const cookies = decodedCookie.split(';');
+    for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.indexOf(name) === 0) {
+            return cookie.substring(name.length);
+        }
+    }
+    return null;
+}</code></pre>
+        </div>
+
+        <div style="margin-top: 2rem;">
+          <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;"><strong>⚡ For Detailed Example of API Integration in Chatbot using HTML: <a href="https://github.com/Sanchit-Darandale/DS-CHATBOT-API-PLATFROM-GUIDE/blob/main/README.md">Click Here</a></strong></h3>
+        </div>
       </section>
-  <!-- Playground -->
+
   <section class="bg-secondary animate-fade-in">
-    <div style="text-align: center; margin-bottom: 2rem;">
+    <div style="text-align: center; margin-bottom: 1rem;">
       <h2 class="section-title">Try Playground</h2>
       <p style="color: hsl(var(--muted-foreground)); font-size: 1.125rem;">Test the API directly from your browser</p>
     </div>
@@ -818,49 +920,6 @@ if (!userId) {
         </div>
       </form>
     </div>
-  </section>
-
-  <!-- Features -->
-  <section class="animate-fade-in">
-    <h2 class="section-title">Core Features</h2>
-    <ul class="features-list">
-      <li>
-        <svg class="check-icon" style="width: 1.5rem; height: 1.5rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-        <span>Combines OpenAI GPT and Google Gemini models</span>
-      </li>
-      <li>
-        <svg class="check-icon" style="width: 1.5rem; height: 1.5rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-        <span>MongoDB memory for chat persistence</span>
-      </li>
-      <li>
-        <svg class="check-icon" style="width: 1.5rem; height: 1.5rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-        <span>Supports custom system prompts</span>
-      </li>
-      <li>
-        <svg class="check-icon" style="width: 1.5rem; height: 1.5rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-        <span>Simple GET or POST integration</span>
-      </li>
-      <li>
-        <svg class="check-icon" style="width: 1.5rem; height: 1.5rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-        <span>Clean JSON responses</span>
-      </li>
-      <li>
-        <svg class="check-icon" style="width: 1.5rem; height: 1.5rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-        <span>Automatic API key rotation for Gemini</span>
-      </li>
-    </ul>
   </section>
 
   <!-- Developer Info -->
@@ -975,27 +1034,24 @@ if (!userId) {
     }
 
     // Tab Switching for Code Examples
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
+    function showTab(lang) {
+      const tabButtons = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
 
-    tabButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        // Remove active class from all buttons
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        // Add active class to clicked button
-        button.classList.add('active');
+      // Remove active class from all buttons
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      // Add active class to clicked button
+      event.target.classList.add('active');
 
-        // Hide all tab contents
-        tabContents.forEach(content => content.classList.remove('active'));
+      // Hide all tab contents
+      tabContents.forEach(content => content.classList.remove('active'));
 
-        // Show the corresponding tab content
-        const lang = button.getAttribute('data-lang');
-        const activeTab = document.getElementById(`${lang}-tab`);
-        if (activeTab) {
-          activeTab.classList.add('active');
-        }
-      });
-    });
+      // Show the corresponding tab content
+      const activeTab = document.getElementById(`${lang}-tab`);
+      if (activeTab) {
+        activeTab.classList.add('active');
+      }
+    }
 
     // Toast Function
     function showToast(title, description, type = 'success') {
