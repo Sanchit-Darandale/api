@@ -7,7 +7,7 @@ from fastapi_utils.tasks import repeat_every
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+app = FastAPI(docs_url=None, redoc_url=None)
 
 # Add CORS middleware
 app.add_middleware(
